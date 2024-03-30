@@ -3,7 +3,7 @@ This module is responsible for testing the data_ingestor module.
 """
 import unittest
 import os
-import app.data_ingestor as di
+from app.data_ingestor import DataIngestor
 
 class TestDataIngestor(unittest.TestCase):
     """
@@ -22,7 +22,7 @@ class TestDataIngestor(unittest.TestCase):
             file.write('Bob,25\n')
 
         # run data ingestor
-        di_list = di.DataIngestor(csv_path)
+        di_list = DataIngestor(csv_path)
 
         # verify that the data is read correctly
         self.assertEqual(di_list.data, [{'name': 'Alice', 'age': '30'},
@@ -32,7 +32,7 @@ class TestDataIngestor(unittest.TestCase):
         os.remove(csv_path)
 
         # check for the main file if the data is read correctly
-        di_list = di.DataIngestor('nutrition_activity_obesity_usa_subset.csv')
+        di_list = DataIngestor('nutrition_activity_obesity_usa_subset.csv')
 
         self.assertEqual(len(di_list.data), 18650)
         data_entry = {'': '10730',
