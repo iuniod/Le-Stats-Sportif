@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 
 class DataIngestor:
     def __init__(self, csv_path: str):
@@ -19,3 +20,10 @@ class DataIngestor:
             'Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)',
             'Percent of adults who engage in muscle-strengthening activities on 2 or more days a week',
         ]
+
+        # read each row of the csv file and store it in a list of dictionaries
+        self.data = []
+        with open(csv_path, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                self.data.append(row)
