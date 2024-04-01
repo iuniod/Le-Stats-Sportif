@@ -25,50 +25,42 @@ def post_endpoint():
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
     print(f"JobID is {job_id}")
-    # TODO
     # Check if job_id is valid
-
-    # Check if job_id is done and return the result
-    #    res = res_for(job_id)
-    #    return jsonify({
-    #        'status': 'done',
-    #        'data': res
-    #    })
-
-    # If not, return running status
-    return jsonify({'status': 'NotImplemented'})
+    job_id_nr = int(job_id[6:])
+    if (job_id_nr > webserver.job_counter):
+        return jsonify({
+            "status": "error",
+            "reason": "Invalid job_id"
+        })
+    
+    # Check if job is still running
+    for task in webserver.tasks_runner.job_list:
+        if task.job_id == job_id_nr:
+            return jsonify({
+                "status": "running"
+            })
+    
+    # Get result of job and return it
+    return jsonify({
+        "status": "done",
+        "result": "TODO"
+    })
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
     # Get request data
     data = request.json
-    print(f"Got request {data}")
+    print(f"got data in post {data}")
 
-    # TODO
     # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+
     # Increment job_id counter
+    webserver.job_counter += 1
+
     # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-@webserver.route('/api/state_mean', methods=['POST'])
-def state_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
-
-    return jsonify({"status": "NotImplemented"})
-
-
-@webserver.route('/api/best5', methods=['POST'])
-def best5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    return jsonify({"job_id": "job_id" + str(job_id)})
+   
 
     return jsonify({"status": "NotImplemented"})
 
