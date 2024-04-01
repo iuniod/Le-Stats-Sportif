@@ -7,14 +7,17 @@ class ThreadPool:
     def __init__(self):
         """ Initialize the ThreadPool. """
         self.num_threads = self.get_num_threads()
-        self.task_queue = Queue()
+        self.job_queue = Queue()
+        self.job_list = []
         self.tasks = []
         self.lock = Lock()
+        self.data_ingestor = None
 
-    def start(self):
+    def start(self, data_ingestor):
         """ Start the thread pool: create and run the threads."""
+        self.data_ingestor = data_ingestor
         for _ in range(self.num_threads):
-            task_runner = TaskRunner(self.task_queue, self.lock)
+            task_runner = TaskRunner(self.job_queue, self.lock)
             task_runner.start()
             self.tasks.append(task_runner)
 
@@ -25,7 +28,6 @@ class ThreadPool:
         
         for task in self.tasks:
             task.join()
-
 
     def get_num_threads_from_env_var(self):
         """
@@ -44,11 +46,18 @@ class ThreadPool:
         num_threads = self.get_num_threads_from_env_var()
         return os.cpu_count() if num_threads is None else int(num_threads)
 
+    def register_job(self, job):
+        """ Register a job and add task to the task queue."""
+        self.lock.acquire()
+        self.job_queue.put(job)
+        self.job_list.append(job)
+        self.lock.release()
+
 
 class TaskRunner(Thread):
-    def __init__(self, task_queue, lock):
+    def __init__(self, job_queue, lock):
         super().__init__()
-        self.task_queue = task_queue
+        self.job_queue = job_queue
         self.shutdown = Event()
         self.lock = lock
 
@@ -58,8 +67,8 @@ class TaskRunner(Thread):
             # get the task from the queue, if available and execute it
             self.lock.acquire()
 
-            if not self.task_queue.empty():
-                task_to_exec = self.task_queue.get()
+            if not self.job_queue.empty():
+                task_to_exec = self.job_queue.get()
                 self.lock.release()
                 self.execute_task(task_to_exec)
             else:
