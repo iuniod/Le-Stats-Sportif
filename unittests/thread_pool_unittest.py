@@ -2,6 +2,7 @@ import unittest
 import os
 from app.task_runner import ThreadPool
 from app.data_ingestor import DataIngestor
+from app.job import Job
  
 class TestThreadPoolMethods(unittest.TestCase):
 	""" This class is responsible for testing the ThreadPool class."""
@@ -20,6 +21,10 @@ class TestThreadPoolMethods(unittest.TestCase):
 		os.remove(csv_path)
 
 		return di
+
+	def aux_job(self):
+		""" This method is used to create a sample job."""
+		return Job(1, {'question' : 'Test'}, 'test')
 
 	def test_get_num_threads(self):
 		"""
@@ -68,12 +73,13 @@ class TestThreadPoolMethods(unittest.TestCase):
 		This method tests the register_job method of the ThreadPool class.
 		"""
 		di = self.aux_data_ingestor()
+		job = self.aux_job()
 		tp = ThreadPool()
 		tp.start(di)
-		tp.register_job('task')
+		tp.register_job(job.job_id, job.input_data)
 		self.assertEqual(tp.job_queue.qsize(), 1)
-		self.assertEqual(tp.job_queue.get(), 'task')
-		self.assertEqual(tp.job_list, ['task'])
+		self.assertEqual(tp.job_queue.get().job_id, job.job_id)
+		self.assertEqual(tp.job_list[0].input_data, job.input_data)
 
 		# close the threads
 		tp.join()

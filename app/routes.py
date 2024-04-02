@@ -24,9 +24,8 @@ def post_endpoint():
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
-    print(f"JobID is {job_id}")
-    # Check if job_id is valid
-    job_id_nr = int(job_id[6:])
+    # Check if job_id is valid - job_id_1, job_id_2, ...
+    job_id_nr = int(job_id.split("_")[-1])
     if (job_id_nr > webserver.job_counter):
         return jsonify({
             "status": "error",
@@ -34,23 +33,29 @@ def get_response(job_id):
         })
     
     # Check if job is still running
-    for task in webserver.tasks_runner.job_list:
-        if task.job_id == job_id_nr:
-            return jsonify({
-                "status": "running"
-            })
+    for job in webserver.tasks_runner.job_list:
+        if job.job_id == job_id_nr:
+            if job.status == "running":
+                return jsonify({
+                    "status": "running"
+                })
+            else:
+                return jsonify({
+                    "status": "done",
+                    "data": job.result
+                })
+
     
-    # Get result of job and return it
+    # If job is not found
     return jsonify({
-        "status": "done",
-        "result": "TODO"
+        "status": "error",
+        "reason": "Job not found"
     })
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
     # Get request data
     data = request.json
-    print(f"got data in post {data}")
 
     # Register job. Don't wait for task to finish
     job_id = webserver.job_counter
@@ -58,11 +63,12 @@ def states_mean_request():
     # Increment job_id counter
     webserver.job_counter += 1
 
-    # Return associated job_id
-    return jsonify({"job_id": "job_id" + str(job_id)})
-   
+    # Register job
+    webserver.tasks_runner.register_job(job_id, data, "/api/states_mean")
 
-    return jsonify({"status": "NotImplemented"})
+    # Return associated job_id
+    return jsonify({"job_id": "job_id_" + str(job_id)})
+    # return jsonify({"status": "NotImplemented"})
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():

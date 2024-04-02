@@ -1,5 +1,6 @@
 from queue import Queue
 from threading import Thread, Event, Lock
+from app.job import Job
 import time
 import os
 
@@ -17,7 +18,7 @@ class ThreadPool:
         """ Start the thread pool: create and run the threads."""
         self.data_ingestor = data_ingestor
         for _ in range(self.num_threads):
-            task_runner = TaskRunner(self.job_queue, self.lock)
+            task_runner = TaskRunner(self.job_queue, self.lock, self.data_ingestor)
             task_runner.start()
             self.tasks.append(task_runner)
 
@@ -46,8 +47,10 @@ class ThreadPool:
         num_threads = self.get_num_threads_from_env_var()
         return os.cpu_count() if num_threads is None else int(num_threads)
 
-    def register_job(self, job):
+    def register_job(self, job_id, data, type_command):
         """ Register a job and add task to the task queue."""
+        job = Job(job_id, data, type_command)
+
         self.lock.acquire()
         self.job_queue.put(job)
         self.job_list.append(job)
@@ -55,11 +58,12 @@ class ThreadPool:
 
 
 class TaskRunner(Thread):
-    def __init__(self, job_queue, lock):
+    def __init__(self, job_queue, lock, data_ingestor):
         super().__init__()
         self.job_queue = job_queue
         self.shutdown = Event()
         self.lock = lock
+        self.data_ingestor = data_ingestor
 
     def run(self):
         """ Run task as long as the shutdown event is not set. """
@@ -68,11 +72,8 @@ class TaskRunner(Thread):
             self.lock.acquire()
 
             if not self.job_queue.empty():
-                task_to_exec = self.job_queue.get()
+                job = self.job_queue.get()
                 self.lock.release()
-                self.execute_task(task_to_exec)
+                job.run(self.data_ingestor)
             else:
                 self.lock.release()
-    
-    def execute_task(self, task):
-        print(f"Executing task: {task}")
