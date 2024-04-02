@@ -1,10 +1,11 @@
+""" This module contains the ThreadPool and TaskRunner classes for multi-threading. """
 from queue import Queue
 from threading import Thread, Event, Lock
-from app.job import Job
-import time
 import os
+from app.job import Job
 
 class ThreadPool:
+    """ ThreadPool class is a pool of threads that execute tasks from the job_queue. """
     def __init__(self):
         """ Initialize the ThreadPool. """
         self.num_threads = self.get_num_threads()
@@ -26,7 +27,7 @@ class ThreadPool:
         """ Wait for all threads to finish and join them. """
         for task in self.tasks:
             task.shutdown.set()
-        
+
         for task in self.tasks:
             task.join()
 
@@ -51,13 +52,13 @@ class ThreadPool:
         """ Register a job and add task to the task queue."""
         job = Job(job_id, data, type_command)
 
-        self.lock.acquire()
-        self.job_queue.put(job)
-        self.job_list.append(job)
-        self.lock.release()
+        with self.lock:
+            self.job_queue.put(job)
+            self.job_list.append(job)
 
 
 class TaskRunner(Thread):
+    """ TaskRunner class is a thread that runs tasks from the job_queue. """
     def __init__(self, job_queue, lock, data_ingestor):
         super().__init__()
         self.job_queue = job_queue

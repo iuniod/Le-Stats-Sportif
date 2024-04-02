@@ -1,8 +1,6 @@
-from app import webserver
+""" This file contains the definition of the endpoints for the webserver """
 from flask import request, jsonify
-
-import os
-import json
+from app import webserver
 
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
@@ -18,20 +16,21 @@ def post_endpoint():
 
         # Sending back a JSON response
         return jsonify(response)
-    else:
-        # Method Not Allowed
-        return jsonify({"error": "Method not allowed"}), 405
+
+    # Method Not Allowed
+    return jsonify({"error": "Method not allowed"}), 405
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
+    """ Get the result of a job by job_id """
     # Check if job_id is valid - job_id_1, job_id_2, ...
     job_id_nr = int(job_id.split("_")[-1])
-    if (job_id_nr > webserver.job_counter):
+    if job_id_nr > webserver.job_counter:
         return jsonify({
             "status": "error",
             "reason": "Invalid job_id"
         })
-    
+
     # Check if job is still running
     for job in webserver.tasks_runner.job_list:
         if job.job_id == job_id_nr:
@@ -39,13 +38,11 @@ def get_response(job_id):
                 return jsonify({
                     "status": "running"
                 })
-            else:
-                return jsonify({
-                    "status": "done",
-                    "data": job.result
-                })
+            return jsonify({
+                "status": "done",
+                "data": job.result
+            })
 
-    
     # If job is not found
     return jsonify({
         "status": "error",
@@ -54,21 +51,19 @@ def get_response(job_id):
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
+    """ Get the mean of the Data_Value column for each state """
     # Get request data
     data = request.json
 
     # Register job. Don't wait for task to finish
     job_id = webserver.job_counter
+    webserver.tasks_runner.register_job(job_id, data, "/api/states_mean")
 
     # Increment job_id counter
     webserver.job_counter += 1
 
-    # Register job
-    webserver.tasks_runner.register_job(job_id, data, "/api/states_mean")
-
     # Return associated job_id
     return jsonify({"job_id": "job_id_" + str(job_id)})
-    # return jsonify({"status": "NotImplemented"})
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
