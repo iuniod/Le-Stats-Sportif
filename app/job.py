@@ -46,16 +46,43 @@ class Job:  # pylint: disable=too-few-public-methods
 
         # Make a json serializable object
         self.result = dict(states_mean)
-        a = self.result
-        j = json.dumps(a)
 
         # write the result to a file in results folder, with the job_id as the filename
         with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
-            f.write(j)
+            f.write(json.dumps(self.result))
 
         # Update the status of the job
         self.status = "done"
 
+    def _global_mean(self, data_ingestor):
+        data_sum = 0
+        data_count = 0
+
+        # Iterate over the data
+        for entry in data_ingestor.data:
+            value = float(entry['Data_Value'])
+            question = entry['Question']
+            year_start = int(entry['YearStart'])
+            year_end = int(entry['YearEnd'])
+
+            # Check if the state is already in the dictionary
+            if question == self.input_data['question'] and \
+               2011 <= year_start <= 2022 and 2011 <= year_end <= 2022:
+                data_sum += value
+                data_count += 1
+
+        # Calculate the mean of the Data_Value column for each state
+        global_mean = data_sum / data_count
+
+        # Make a json serializable object
+        self.result = {"global_mean": global_mean}
+
+        # write the result to a file in results folder, with the job_id as the filename
+        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(self.result))
+
+        # Update the status of the job
+        self.status = "done"
 
     def _default(self):
         print("This is the default case")
@@ -63,6 +90,7 @@ class Job:  # pylint: disable=too-few-public-methods
     def _switch_case(self, data_ingestor):
         switch = {
             '/api/states_mean': self._states_mean,
+            '/api/global_mean': self._global_mean,
         }
 
         func = switch.get(self.command, self._default)

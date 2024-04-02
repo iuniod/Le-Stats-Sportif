@@ -3,7 +3,6 @@ import os
 from flask import Flask
 from app.data_ingestor import DataIngestor
 from app.task_runner import ThreadPool
-from app import routes
 
 webserver = Flask(__name__)
 webserver.tasks_runner = ThreadPool()
@@ -16,3 +15,5 @@ webserver.job_counter = 1
 
 if not os.path.exists('results'):
     os.makedirs('results')
+
+from app import routes
