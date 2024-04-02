@@ -14,32 +14,23 @@ class Job:  # pylint: disable=too-few-public-methods
         self.command = command
 
     def _states_mean(self, data_ingestor):
-        # Create a dictionary to store the mean of the Data_Value column
-        states_mean = {}
-        states_sum = {}
-        states_count = {}
+        # Extract relevant data entries for the specified question
+        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
 
-        # Iterate over the data
-        for entry in data_ingestor.data:
+        # Extract the state and the Data_Value column from the relevant data entries
+        states_mean = {}
+        for entry in relevant_entries:
             state = entry['LocationDesc']
             value = float(entry['Data_Value'])
-            question = entry['Question']
-            year_start = int(entry['YearStart'])
-            year_end = int(entry['YearEnd'])
 
-            # Check if the state is already in the dictionary
-            if question == self.input_data['question'] and \
-               2011 <= year_start <= 2022 and 2011 <= year_end <= 2022:
-                if state not in states_sum:
-                    states_sum[state] = 0
-                    states_count[state] = 0
+            if state not in states_mean:
+                states_mean[state] = []
 
-                states_sum[state] += value
-                states_count[state] += 1
+            states_mean[state].append(value)
 
         # Calculate the mean of the Data_Value column for each state
-        for state, sum_value in states_sum.items():
-            states_mean[state] = sum_value / states_count[state]
+        for state, values in states_mean.items():
+            states_mean[state] = sum(values) / len(values)
 
         # Sort the dictionary by the mean of the Data_Value column
         states_mean = dict(sorted(states_mean.items(), key=lambda item: item[1]))
@@ -54,25 +45,29 @@ class Job:  # pylint: disable=too-few-public-methods
         # Update the status of the job
         self.status = "done"
 
+    def _state_mean(self, data_ingestor):
+        # Extract relevant data entries for the specified question
+        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question'] and entry['LocationDesc'] == self.input_data['state']]
+
+        # Calculate mean of the relevant data entries
+        state_mean = sum([float(entry['Data_Value']) for entry in relevant_entries]) / len(relevant_entries)
+
+        # Make a json serializable object
+        self.result = {self.input_data['state']: state_mean}
+
+        # write the result to a file in results folder, with the job_id as the filename
+        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(self.result))
+
+        # Update the status of the job
+        self.status = "done"
+
     def _global_mean(self, data_ingestor):
-        data_sum = 0
-        data_count = 0
+        # Extract relevant data entries for the specified question
+        relevant_entries = [float(entry['Data_Value']) for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
 
-        # Iterate over the data
-        for entry in data_ingestor.data:
-            value = float(entry['Data_Value'])
-            question = entry['Question']
-            year_start = int(entry['YearStart'])
-            year_end = int(entry['YearEnd'])
-
-            # Check if the state is already in the dictionary
-            if question == self.input_data['question'] and \
-               2011 <= year_start <= 2022 and 2011 <= year_end <= 2022:
-                data_sum += value
-                data_count += 1
-
-        # Calculate the mean of the Data_Value column for each state
-        global_mean = data_sum / data_count
+        # Calculate mean of the relevant data entries
+        global_mean = sum(relevant_entries) / len(relevant_entries)
 
         # Make a json serializable object
         self.result = {"global_mean": global_mean}
@@ -91,6 +86,7 @@ class Job:  # pylint: disable=too-few-public-methods
         switch = {
             '/api/states_mean': self._states_mean,
             '/api/global_mean': self._global_mean,
+            '/api/state_mean': self._state_mean,
         }
 
         func = switch.get(self.command, self._default)

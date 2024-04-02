@@ -22,7 +22,7 @@ def post_endpoint():
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
-    """ Get the result of a job by job_id """
+    """ Get the result of a job by job_id if exists """
     # Check if job_id is valid - job_id_1, job_id_2, ...
     job_id_nr = int(job_id.split("_")[-1])
     if job_id_nr > webserver.job_counter:
@@ -51,13 +51,29 @@ def get_response(job_id):
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
-    """ Get the mean of the Data_Value column for each state """
+    """ Get the mean of the Data_Value column for each state for the given question """
     # Get request data
     data = request.json
 
     # Register job. Don't wait for task to finish
     job_id = webserver.job_counter
     webserver.tasks_runner.register_job(job_id, data, "/api/states_mean")
+
+    # Increment job_id counter
+    webserver.job_counter += 1
+
+    # Return associated job_id
+    return jsonify({"job_id": "job_id_" + str(job_id)})
+
+@webserver.route('/api/state_mean', methods=['POST'])
+def state_mean_request():
+    """ Get the mean of the Data_Value column for a given state and question """
+    # Get request data
+    data = request.json
+
+    # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+    webserver.tasks_runner.register_job(job_id, data, "/api/state_mean")
 
     # Increment job_id counter
     webserver.job_counter += 1
