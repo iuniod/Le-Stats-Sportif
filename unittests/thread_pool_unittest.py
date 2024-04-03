@@ -55,19 +55,31 @@ class TestThreadPoolMethods(unittest.TestCase):
         self.assertEqual(tp.tasks[0].is_alive(), True)
 
         # close the threads
-        tp.join()
+        tp.stop()
 
-    def test_join(self):
+    def test_stop(self):
         """
-        This method tests the join method of the ThreadPool class.
+        This method tests the stop method of the ThreadPool class.
         """
         di = self.aux_data_ingestor()
         tp = ThreadPool()
         tp.start(di)
-        tp.join()
-        # check if all threads are closed
-        for task in tp.tasks:
-            self.assertEqual(task.is_alive(), False)
+
+        # add a job to the job queue
+        job = self.aux_job()
+        tp.register_job(job.job_id, job.input_data, job.command)
+
+        # stop the threads
+        tp.stop()
+
+        # check if the threads are not alive
+        self.assertEqual(tp.tasks[0].is_alive(), False)
+        # check if the job queue is empty
+        self.assertEqual(tp.job_queue.empty(), True)
+        # try to add a job to the job queue
+        job = self.aux_job()
+        tp.register_job(job.job_id, job.input_data, job.command)
+        self.assertEqual(tp.job_queue.empty(), True)
 
     def test_register_job(self):
         """
@@ -77,10 +89,10 @@ class TestThreadPoolMethods(unittest.TestCase):
         job = self.aux_job()
         tp = ThreadPool()
         tp.start(di)
-        tp.register_job(job.job_id, job.input_data)
+        tp.register_job(job.job_id, job.input_data, job.command)
         self.assertEqual(tp.job_queue.qsize(), 1)
         self.assertEqual(tp.job_queue.get().job_id, job.job_id)
         self.assertEqual(tp.job_list[0].input_data, job.input_data)
 
         # close the threads
-        tp.join()
+        tp.stop()

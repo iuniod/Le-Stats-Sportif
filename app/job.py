@@ -95,7 +95,7 @@ class Job:  # pylint: disable=too-few-public-methods
         # Make a json serializable object
         self.result = {state_name: state_diff_from_mean}
 
-    def _default(self):
+    def _default(self, data_ingestor):
         print("This is the default case")
 
     def _switch_case(self, data_ingestor):

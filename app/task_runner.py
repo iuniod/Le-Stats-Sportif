@@ -14,6 +14,7 @@ class ThreadPool:
         self.tasks = []
         self.lock = Lock()
         self.data_ingestor = None
+        self.accepting_jobs = True
 
     def start(self, data_ingestor):
         """ Start the thread pool: create and run the threads."""
@@ -23,8 +24,10 @@ class ThreadPool:
             task_runner.start()
             self.tasks.append(task_runner)
 
-    def join(self):
-        """ Wait for all threads to finish and join them. """
+    def stop(self):
+        """ Don't accept new tasks and wait for the current tasks to finish."""
+        self.accepting_jobs = False
+
         for task in self.tasks:
             task.shutdown.set()
 
@@ -49,7 +52,10 @@ class ThreadPool:
         return os.cpu_count() if num_threads is None else int(num_threads)
 
     def register_job(self, job_id, data, type_command):
-        """ Register a job and add task to the task queue."""
+        """ Register a job and add it to the job_queue as long as the ThreadPool is accepting jobs."""
+        if not self.accepting_jobs:
+            return
+
         job = Job(job_id, data, type_command)
 
         with self.lock:
@@ -68,7 +74,7 @@ class TaskRunner(Thread):
 
     def run(self):
         """ Run task as long as the shutdown event is not set. """
-        while not self.shutdown.is_set():
+        while not self.shutdown.is_set() or not self.job_queue.empty():
             # get the task from the queue, if available and execute it
             self.lock.acquire()
 

@@ -159,6 +159,11 @@ def state_mean_by_category_request():
 
     return jsonify({"status": "NotImplemented"})
 
+@webserver.route('/api/graceful_shutdown', methods=['POST'])
+def graceful_shutdown_request():
+    # Signal the tasks_runner to stop accepting new jobs
+    webserver.tasks_runner.stop()
+
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
 @webserver.route('/index')
