@@ -76,6 +76,24 @@ class Job:  # pylint: disable=too-few-public-methods
         # Make a json serializable object
         self.result = diff_from_mean
 
+    def _state_diff_from_mean(self, data_ingestor):
+        # Get the mean of the Data_Value column for the specified question and state,
+        # and store it in a variable
+        self._state_mean(data_ingestor)
+        state_mean = self.result[self.input_data['state']]
+        state_name = self.input_data['state']
+
+        # Get the global mean of the Data_Value column for the specified question
+        # and store it in a variable
+        self._global_mean(data_ingestor)
+        global_mean = self.result["global_mean"]
+
+        # Calculate the difference between the mean of the Data_Value column for the specified state
+        # and the global mean of the Data_Value column
+        state_diff_from_mean = global_mean - state_mean
+
+        # Make a json serializable object
+        self.result = {state_name: state_diff_from_mean}
 
     def _default(self):
         print("This is the default case")
@@ -86,6 +104,7 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/global_mean': self._global_mean,
             '/api/state_mean': self._state_mean,
             '/api/diff_from_mean': self._diff_from_mean,
+            '/api/state_diff_from_mean': self._state_diff_from_mean,
         }
 
         func = switch.get(self.command, self._default)
