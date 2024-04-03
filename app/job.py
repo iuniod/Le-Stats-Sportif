@@ -38,13 +38,6 @@ class Job:  # pylint: disable=too-few-public-methods
         # Make a json serializable object
         self.result = dict(states_mean)
 
-        # write the result to a file in results folder, with the job_id as the filename
-        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
-            f.write(json.dumps(self.result))
-
-        # Update the status of the job
-        self.status = "done"
-
     def _state_mean(self, data_ingestor):
         # Extract relevant data entries for the specified question
         relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question'] and entry['LocationDesc'] == self.input_data['state']]
@@ -54,13 +47,6 @@ class Job:  # pylint: disable=too-few-public-methods
 
         # Make a json serializable object
         self.result = {self.input_data['state']: state_mean}
-
-        # write the result to a file in results folder, with the job_id as the filename
-        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
-            f.write(json.dumps(self.result))
-
-        # Update the status of the job
-        self.status = "done"
 
     def _global_mean(self, data_ingestor):
         # Extract relevant data entries for the specified question
@@ -72,12 +58,24 @@ class Job:  # pylint: disable=too-few-public-methods
         # Make a json serializable object
         self.result = {"global_mean": global_mean}
 
-        # write the result to a file in results folder, with the job_id as the filename
-        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
-            f.write(json.dumps(self.result))
+    def _diff_from_mean(self, data_ingestor):
+        # Get for each state the mean of the Data_Value column for the specified question
+        # and store it in a variable
+        self._states_mean(data_ingestor)
+        states_mean = self.result
 
-        # Update the status of the job
-        self.status = "done"
+        # Get the global mean of the Data_Value column for the specified question
+        # and store it in a variable
+        self._global_mean(data_ingestor)
+        global_mean = self.result["global_mean"]
+
+        # Calculate the difference between the mean of the Data_Value column for each state
+        # and the global mean of the Data_Value column
+        diff_from_mean = {state: global_mean - mean for state, mean in states_mean.items()}
+
+        # Make a json serializable object
+        self.result = diff_from_mean
+
 
     def _default(self):
         print("This is the default case")
@@ -87,6 +85,7 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/states_mean': self._states_mean,
             '/api/global_mean': self._global_mean,
             '/api/state_mean': self._state_mean,
+            '/api/diff_from_mean': self._diff_from_mean,
         }
 
         func = switch.get(self.command, self._default)
@@ -94,4 +93,12 @@ class Job:  # pylint: disable=too-few-public-methods
 
     def run(self, data_ingestor):
         """ Run the job according to the command of the job."""
+        # find result based on the command
         self._switch_case(data_ingestor)
+
+        # write the result to a file in results folder, with the job_id as the filename
+        with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
+            f.write(json.dumps(self.result))
+
+        # Update the status of the job
+        self.status = "done"

@@ -111,11 +111,17 @@ def global_mean_request():
 def diff_from_mean_request():
     # TODO
     # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.json
 
-    return jsonify({"status": "NotImplemented"})
+    # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+    webserver.tasks_runner.register_job(job_id, data, "/api/diff_from_mean")
+
+    # Increment job_id counter
+    webserver.job_counter += 1
+
+    # Return associated job_id
+    return jsonify({"job_id": "job_id_" + str(job_id)})
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
