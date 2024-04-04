@@ -95,6 +95,36 @@ class Job:  # pylint: disable=too-few-public-methods
         # Make a json serializable object
         self.result = {state_name: state_diff_from_mean}
 
+    def _mean_by_category(self, data_ingestor):
+        # Extract entries for the specified question
+        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
+
+        # Extract for each state, for each StratificationCategory1 and for each Stratification1 the Data_Value column
+        # from the relevant data entries
+        mean_by_category = {}
+        for entry in relevant_entries:
+            state = entry['LocationDesc']
+            category = entry['StratificationCategory1']
+            category_value = entry['Stratification1']
+            value = float(entry['Data_Value'])
+
+            # Check if state, category and category_value does not have empty values
+            if state == '' or category == '' or category_value == '':
+                continue
+
+            if (state, category, category_value) not in mean_by_category:
+                mean_by_category[(state, category, category_value)] = []
+            
+            mean_by_category[(state, category, category_value)].append(value)
+        
+        # Calculate the mean of the Data_Value column for each state, for each StratificationCategory1 and for each Stratification1
+        self.result = {}
+        for key, values in mean_by_category.items():
+            self.result[str(key)] = sum(values) / len(values)
+
+        # Sort the dictionary lexicographically
+        self.result = dict(sorted(self.result.items()))
+
     def _default(self, data_ingestor):
         print("This is the default case")
 
@@ -105,6 +135,7 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/state_mean': self._state_mean,
             '/api/diff_from_mean': self._diff_from_mean,
             '/api/state_diff_from_mean': self._state_diff_from_mean,
+            '/api/mean_by_category': self._mean_by_category,
         }
 
         func = switch.get(self.command, self._default)
