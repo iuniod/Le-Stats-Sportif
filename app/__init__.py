@@ -15,6 +15,7 @@ webserver.data_ingestor = DataIngestor("./nutrition_activity_obesity_usa_subset.
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
+webserver.logger = logging.Logger(__name__)
 # Configure RotatingFileHandler to write to the log file "file.log"
 # maximum log file size: 10KB, and keep 10 historical copies
 handler = RotatingFileHandler("logs/file.log", maxBytes=10000, backupCount=10)
@@ -24,12 +25,11 @@ handler.setFormatter(formatter)
 
 webserver.logger.addHandler(handler)
 
+webserver.logger.setLevel(logging.INFO)
+
 webserver.tasks_runner.start(webserver.data_ingestor, webserver.logger)
 
 webserver.job_counter = 1
-
-webserver.logger = logging.getLogger(__name__)
-webserver.logger.setLevel(logging.INFO)
 
 if not os.path.exists('results'):
     os.makedirs('results')
