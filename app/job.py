@@ -154,7 +154,7 @@ class Job:  # pylint: disable=too-few-public-methods
         # Sort the dictionary lexicographically
         self.result = {self.input_data['state']: self.result}
 
-    def _best5(self, data_ingestor):
+    def _sort_states(self, data_ingestor):
         # Get states mean and store it in a variable
         self._states_mean(data_ingestor)
         states_mean = self.result
@@ -166,8 +166,21 @@ class Job:  # pylint: disable=too-few-public-methods
         else:
             sort_states = sorted(states_mean.items(), key=lambda x: x[1], reverse=True)
 
+        return sort_states
+
+    def _best5(self, data_ingestor):
+        # Get the sorted states
+        sort_states = self._sort_states(data_ingestor)
+
         # Get the best 5 states
         self.result = dict(sort_states[:5])
+
+    def _worst5(self, data_ingestor):
+        # Get the sorted states
+        sort_states = self._sort_states(data_ingestor)
+
+        # Get the worst 5 states
+        self.result = dict(sort_states[-5:])
 
     def _default(self, data_ingestor):
         print("This is the default case")
@@ -182,6 +195,7 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/mean_by_category': self._mean_by_category,
             '/api/state_mean_by_category': self._state_mean_by_category,
             '/api/best5': self._best5,
+            '/api/worst5': self._worst5,
         }
 
         func = switch.get(self.command, self._default)
