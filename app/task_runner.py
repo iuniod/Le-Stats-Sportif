@@ -2,6 +2,7 @@
 from queue import Queue
 from threading import Thread, Event, Lock
 import os
+import logging
 from app.job import Job
 
 class ThreadPool:
@@ -15,9 +16,12 @@ class ThreadPool:
         self.lock = Lock()
         self.data_ingestor = None
         self.accepting_jobs = True
+        self.logger = None
 
-    def start(self, data_ingestor):
+    def start(self, data_ingestor, logger):
         """ Start the thread pool: create and run the threads."""
+        self.logger = logger
+        self.logger.info(f"Starting ThreadPool with {self.num_threads} threads")
         self.data_ingestor = data_ingestor
         for _ in range(self.num_threads):
             task_runner = TaskRunner(self.job_queue, self.lock, self.data_ingestor)
@@ -30,9 +34,11 @@ class ThreadPool:
 
         for task in self.tasks:
             task.shutdown.set()
+        self.logger.info("Sent shutdown signal to all tasks")
 
         for task in self.tasks:
             task.join()
+        self.logger.info("All tasks have stopped")
 
     def get_num_threads_from_env_var(self):
         """
@@ -55,9 +61,11 @@ class ThreadPool:
         """ Register a job and add it to the job_queue as long as
             the ThreadPool is accepting jobs."""
         if not self.accepting_jobs:
+            self.logger.info("Not accepting jobs - ThreadPool is shutting down.")
             return
 
         job = Job(job_id, data, type_command)
+        self.logger.info(f"Registered job with job_id: {job_id}")
 
         with self.lock:
             self.job_queue.put(job)

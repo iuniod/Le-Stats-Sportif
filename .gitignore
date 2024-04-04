@@ -4,6 +4,7 @@ __pycache__/
 *.so
 
 results/
+logs/
 
 venv/
 build/

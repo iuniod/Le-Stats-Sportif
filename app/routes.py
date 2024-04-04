@@ -24,6 +24,7 @@ def post_endpoint():
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
     """ Get the result of a job by job_id if exists """
+    webserver.logger.info(f"Received request for job_id: {job_id}")
     # Check if job_id is valid
     job_id_nr = int(job_id.split("_")[-1])
     if job_id_nr > webserver.job_counter:
@@ -53,6 +54,7 @@ def get_response(job_id):
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
     """ Get the mean of the Data_Value column for each state for the given question """
+    webserver.logger.info("Received request for states_mean with data: {}".format(request.json))
     # Get request data
     data = request.json
 
@@ -69,6 +71,7 @@ def states_mean_request():
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
     """ Get the mean of the Data_Value column for a given state and question """
+    webserver.logger.info(f"Received request for state_mean with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -85,6 +88,7 @@ def state_mean_request():
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
     """ Get the best 5 states for the given question """
+    webserver.logger.info(f"Received request for best5 with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -101,6 +105,7 @@ def best5_request():
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
     """ Get the worst 5 states for the given question """
+    webserver.logger.info(f"Received request for worst5 with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -117,6 +122,7 @@ def worst5_request():
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
     """ Get the global mean of the Data_Value column """
+    webserver.logger.info(f"Received request for global_mean with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -134,6 +140,7 @@ def global_mean_request():
 def diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for each state, for the given question"""
+    webserver.logger.info(f"Received request for diff_from_mean with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -151,6 +158,7 @@ def diff_from_mean_request():
 def state_diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for a given state and question """
+    webserver.logger.info(f"Received request for state_diff_from_mean with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -168,6 +176,7 @@ def state_diff_from_mean_request():
 def mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for each state,
         for the given question """
+    webserver.logger.info(f"Received request for mean_by_category with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -184,6 +193,7 @@ def mean_by_category_request():
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for a given state and question """
+    webserver.logger.info(f"Received request for state_mean_by_category with data: {request.json}")
     # Get request data
     data = request.json
 
@@ -200,6 +210,7 @@ def state_mean_by_category_request():
 @webserver.route('/api/graceful_shutdown', methods=['POST'])
 def graceful_shutdown_request():
     """ Gracefully shutdown the server """
+    webserver.logger.info("Received request for graceful_shutdown")
     # Signal the tasks_runner to stop accepting new jobs
     webserver.tasks_runner.stop()
 
