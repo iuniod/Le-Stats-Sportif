@@ -52,7 +52,8 @@ class ThreadPool:
         return os.cpu_count() if num_threads is None else int(num_threads)
 
     def register_job(self, job_id, data, type_command):
-        """ Register a job and add it to the job_queue as long as the ThreadPool is accepting jobs."""
+        """ Register a job and add it to the job_queue as long as
+            the ThreadPool is accepting jobs."""
         if not self.accepting_jobs:
             return
 

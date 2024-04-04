@@ -5,6 +5,7 @@ from app import webserver
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
 def post_endpoint():
+    """ Example POST endpoint """
     if request.method == 'POST':
         # Assuming the request contains JSON data
         data = request.json
@@ -23,7 +24,7 @@ def post_endpoint():
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
     """ Get the result of a job by job_id if exists """
-    # Check if job_id is valid - job_id_1, job_id_2, ...
+    # Check if job_id is valid
     job_id_nr = int(job_id.split("_")[-1])
     if job_id_nr > webserver.job_counter:
         return jsonify({
@@ -83,6 +84,7 @@ def state_mean_request():
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
+    """ Get the best 5 states for the given question """
     # Get request data
     data = request.json
 
@@ -98,6 +100,7 @@ def best5_request():
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
+    """ Get the worst 5 states for the given question """
     # Get request data
     data = request.json
 
@@ -129,7 +132,8 @@ def global_mean_request():
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
-    # TODO
+    """ Get the difference between global mean and
+        the mean of the Data_Value column for each state, for the given question"""
     # Get request data
     data = request.json
 
@@ -145,6 +149,8 @@ def diff_from_mean_request():
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
+    """ Get the difference between global mean and
+        the mean of the Data_Value column for a given state and question """
     # Get request data
     data = request.json
 
@@ -160,6 +166,8 @@ def state_diff_from_mean_request():
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
+    """ Get the mean of the Data_Value column for each category, for each state,
+        for the given question """
     # Get request data
     data = request.json
 
@@ -175,6 +183,7 @@ def mean_by_category_request():
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
+    """ Get the mean of the Data_Value column for each category, for a given state and question """
     # Get request data
     data = request.json
 
@@ -190,6 +199,7 @@ def state_mean_by_category_request():
 
 @webserver.route('/api/graceful_shutdown', methods=['POST'])
 def graceful_shutdown_request():
+    """ Gracefully shutdown the server """
     # Signal the tasks_runner to stop accepting new jobs
     webserver.tasks_runner.stop()
 
@@ -197,18 +207,18 @@ def graceful_shutdown_request():
 @webserver.route('/')
 @webserver.route('/index')
 def index():
+    """ Display the available routes on the webserver """
     routes = get_defined_routes()
-    msg = f"Hello, World!\n Interact with the webserver using one of the defined routes:\n"
+    msg = "Hello, World!\n Interact with the webserver using one of the defined routes:\n"
 
     # Display each route as a separate HTML <p> tag
-    paragraphs = ""
-    for route in routes:
-        paragraphs += f"<p>{route}</p>"
+    paragraphs = "\n".join(f"<p>{route}</p>" for route in routes)
 
     msg += paragraphs
     return msg
 
 def get_defined_routes():
+    """ Get the defined routes for the webserver """
     routes = []
     for rule in webserver.url_map.iter_rules():
         methods = ', '.join(rule.methods)

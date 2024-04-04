@@ -1,5 +1,6 @@
-""" This module contains the Job class which is used to store the job details.
-    Job class has also a method to run the job.
+""" This module contains the implementation of the Job class.
+The Job class is used to store information about a job and can run the job based on the command.
+The command specifies the type of API that created the job.
 """
 import json
 
@@ -14,10 +15,13 @@ class Job:  # pylint: disable=too-few-public-methods
         self.command = command
 
     def _states_mean(self, data_ingestor):
-        # Extract relevant data entries for the specified question
-        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
+        """ Calculate the mean of the Data_Value column for each state,
+            for the specified question."""
+        # Extract the entries for the specified question
+        relevant_entries = [entry for entry in data_ingestor.data \
+                            if entry['Question'] == self.input_data['question']]
 
-        # Extract the state and the Data_Value column from the relevant data entries
+        # Extract for each state the Data_Value column from the relevant data entries
         states_mean = {}
         for entry in relevant_entries:
             state = entry['LocationDesc']
@@ -28,79 +32,83 @@ class Job:  # pylint: disable=too-few-public-methods
 
             states_mean[state].append(value)
 
-        # Calculate the mean of the Data_Value column for each state
+        # Calculate the mean for each state
         for state, values in states_mean.items():
             states_mean[state] = sum(values) / len(values)
 
-        # Sort the dictionary by the mean of the Data_Value column
-        states_mean = dict(sorted(states_mean.items(), key=lambda item: item[1]))
-
-        # Make a json serializable object
-        self.result = dict(states_mean)
+        # Sort the dictionary ascendingly by the mean and store it in result
+        self.result = dict(sorted(states_mean.items(), key=lambda item: item[1]))
 
     def _state_mean(self, data_ingestor):
-        # Extract relevant data entries for the specified question
-        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question'] and entry['LocationDesc'] == self.input_data['state']]
+        """ Calculate the mean of the Data_Value column for the specified question and state."""
+        # Extract the entries for the specified question and state
+        relevant_entries = [entry for entry in data_ingestor.data \
+                            if entry['Question'] == self.input_data['question'] and \
+                               entry['LocationDesc'] == self.input_data['state']]
 
-        # Calculate mean of the relevant data entries
-        state_mean = sum([float(entry['Data_Value']) for entry in relevant_entries]) / len(relevant_entries)
+        # Calculate the mean
+        state_mean = sum(float(entry['Data_Value'])
+                        for entry in relevant_entries) / len(relevant_entries)
 
-        # Make a json serializable object
+        # Store the result
         self.result = {self.input_data['state']: state_mean}
 
     def _global_mean(self, data_ingestor):
-        # Extract relevant data entries for the specified question
-        relevant_entries = [float(entry['Data_Value']) for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
+        """ Calculate the global mean of the Data_Value column for the specified question."""
+        # Extract the entries for the specified question
+        relevant_entries = [float(entry['Data_Value']) for entry in data_ingestor.data \
+                            if entry['Question'] == self.input_data['question']]
 
-        # Calculate mean of the relevant data entries
+        # Calculate the global mean
         global_mean = sum(relevant_entries) / len(relevant_entries)
 
-        # Make a json serializable object
+        # Store the result
         self.result = {"global_mean": global_mean}
 
     def _diff_from_mean(self, data_ingestor):
+        """ Calculate the difference between the mean of the Data_Value column for each state
+            and the global mean."""
         # Get for each state the mean of the Data_Value column for the specified question
-        # and store it in a variable
         self._states_mean(data_ingestor)
         states_mean = self.result
 
         # Get the global mean of the Data_Value column for the specified question
-        # and store it in a variable
         self._global_mean(data_ingestor)
         global_mean = self.result["global_mean"]
 
-        # Calculate the difference between the mean of the Data_Value column for each state
-        # and the global mean of the Data_Value column
+        # Calculate the difference between the mean of each state and the global mean
         diff_from_mean = {state: global_mean - mean for state, mean in states_mean.items()}
 
-        # Make a json serializable object
+        # Store the result
         self.result = diff_from_mean
 
     def _state_diff_from_mean(self, data_ingestor):
-        # Get the mean of the Data_Value column for the specified question and state,
-        # and store it in a variable
+        """ Calculate the difference between the mean of the Data_Value column for the
+            specified state and the global mean."""
+        # Get the mean of the Data_Value column for the specified question and state
         self._state_mean(data_ingestor)
         state_mean = self.result[self.input_data['state']]
         state_name = self.input_data['state']
 
         # Get the global mean of the Data_Value column for the specified question
-        # and store it in a variable
         self._global_mean(data_ingestor)
         global_mean = self.result["global_mean"]
 
-        # Calculate the difference between the mean of the Data_Value column for the specified state
-        # and the global mean of the Data_Value column
+        # Calculate the difference between the mean of the specified state and the global mean
         state_diff_from_mean = global_mean - state_mean
 
-        # Make a json serializable object
+        # Store the result
         self.result = {state_name: state_diff_from_mean}
 
     def _mean_by_category(self, data_ingestor):
+        """ Calculate the mean of the Data_Value column for each state, for each
+            StratificationCategory1 and for each Stratification1."""
         # Extract entries for the specified question
-        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question']]
+        relevant_entries = [entry for entry in data_ingestor.data \
+                            if entry['Question'] == self.input_data['question']]
 
-        # Extract for each state, for each StratificationCategory1 and for each Stratification1 the Data_Value column
-        # from the relevant data entries
+        # Extract for each state, for each StratificationCategory1 and for each Stratification1
+        # the Data_Value column from the relevant data entries
         mean_by_category = {}
         for entry in relevant_entries:
             state = entry['LocationDesc']
@@ -114,10 +122,10 @@ class Job:  # pylint: disable=too-few-public-methods
 
             if (state, category, category_value) not in mean_by_category:
                 mean_by_category[(state, category, category_value)] = []
-            
+
             mean_by_category[(state, category, category_value)].append(value)
-        
-        # Calculate the mean of the Data_Value column for each state, for each StratificationCategory1 and for each Stratification1
+
+        # Calculate the mean
         self.result = {}
         for key, values in mean_by_category.items():
             self.result[str(key)] = sum(values) / len(values)
@@ -126,11 +134,15 @@ class Job:  # pylint: disable=too-few-public-methods
         self.result = dict(sorted(self.result.items()))
 
     def _state_mean_by_category(self, data_ingestor):
+        """ Calculate the mean of the Data_Value column for the specified question and state,
+            for each StratificationCategory1 and for each Stratification1."""
         # Extract entries for the specified question and state
-        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question'] and entry['LocationDesc'] == self.input_data['state']]
+        relevant_entries = [entry for entry in data_ingestor.data \
+                            if entry['Question'] == self.input_data['question'] and \
+                               entry['LocationDesc'] == self.input_data['state']]
 
-        # Extract for each StratificationCategory1 and for each Stratification1 the Data_Value column
-        # from the relevant data entries
+        # Extract for each StratificationCategory1 and for each Stratification1 the Data_Value
+        # column from the relevant data entries
         mean_by_category = {}
         for entry in relevant_entries:
             category = entry['StratificationCategory1']
@@ -143,10 +155,10 @@ class Job:  # pylint: disable=too-few-public-methods
 
             if (category, category_value) not in mean_by_category:
                 mean_by_category[(category, category_value)] = []
-            
+
             mean_by_category[(category, category_value)].append(value)
-        
-        # Calculate the mean of the Data_Value column for each StratificationCategory1 and for each Stratification1
+
+        # Calculate the mean
         self.result = {}
         for key, values in mean_by_category.items():
             self.result[str(key)] = sum(values) / len(values)
@@ -155,6 +167,7 @@ class Job:  # pylint: disable=too-few-public-methods
         self.result = {self.input_data['state']: self.result}
 
     def _sort_states(self, data_ingestor):
+        """ Sort the states mean according to the question."""
         # Get states mean and store it in a variable
         self._states_mean(data_ingestor)
         states_mean = self.result
@@ -169,6 +182,7 @@ class Job:  # pylint: disable=too-few-public-methods
         return sort_states
 
     def _best5(self, data_ingestor):
+        """ Get the best 5 states according to the question."""
         # Get the sorted states
         sort_states = self._sort_states(data_ingestor)
 
@@ -176,6 +190,7 @@ class Job:  # pylint: disable=too-few-public-methods
         self.result = dict(sort_states[:5])
 
     def _worst5(self, data_ingestor):
+        """ Get the worst 5 states according to the question."""
         # Get the sorted states
         sort_states = self._sort_states(data_ingestor)
 
@@ -183,9 +198,10 @@ class Job:  # pylint: disable=too-few-public-methods
         self.result = dict(sort_states[-5:])
 
     def _default(self, data_ingestor):
-        print("This is the default case")
+        """ Default case when the command is not recognized."""
 
     def _switch_case(self, data_ingestor):
+        """ Switch case to run the job based on the command."""
         switch = {
             '/api/states_mean': self._states_mean,
             '/api/global_mean': self._global_mean,

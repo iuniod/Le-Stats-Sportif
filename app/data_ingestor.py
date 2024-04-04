@@ -1,6 +1,6 @@
 """
-This module is responsible for reading the csv file and storing the data in a
-list of dictionaries.
+This module is responsible for reading the csv file and storing the data in a list of dictionaries.
+From the csv file, only the columns that are needed are stored, for a more efficient use of memory.
 """
 import csv
 
@@ -38,4 +38,13 @@ class DataIngestor:  # pylint: disable=too-few-public-methods
         with open(csv_path, encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                self.data.append(row)
+                # Select only the columns that are needed
+                short_row = {
+                    '' : row[''], # this
+                    'LocationDesc': row['LocationDesc'],
+                    'Question': row['Question'],
+                    'Data_Value': row['Data_Value'],
+                    'StratificationCategory1': row['StratificationCategory1'],
+                    'Stratification1': row['Stratification1']
+                }
+                self.data.append(short_row)
