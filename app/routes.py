@@ -125,7 +125,6 @@ def diff_from_mean_request():
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
-    # TODO
     # Get request data
     data = request.json
 
@@ -141,7 +140,6 @@ def state_diff_from_mean_request():
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
-    # TODO
     # Get request data
     data = request.json
 
@@ -157,13 +155,18 @@ def mean_by_category_request():
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
-    # TODO
     # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.json
 
-    return jsonify({"status": "NotImplemented"})
+    # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+    webserver.tasks_runner.register_job(job_id, data, "/api/state_mean_by_category")
+
+    # Increment job_id counter
+    webserver.job_counter += 1
+
+    # Return associated job_id
+    return jsonify({"job_id": "job_id_" + str(job_id)})
 
 @webserver.route('/api/graceful_shutdown', methods=['POST'])
 def graceful_shutdown_request():

@@ -125,6 +125,35 @@ class Job:  # pylint: disable=too-few-public-methods
         # Sort the dictionary lexicographically
         self.result = dict(sorted(self.result.items()))
 
+    def _state_mean_by_category(self, data_ingestor):
+        # Extract entries for the specified question and state
+        relevant_entries = [entry for entry in data_ingestor.data if entry['Question'] == self.input_data['question'] and entry['LocationDesc'] == self.input_data['state']]
+
+        # Extract for each StratificationCategory1 and for each Stratification1 the Data_Value column
+        # from the relevant data entries
+        mean_by_category = {}
+        for entry in relevant_entries:
+            category = entry['StratificationCategory1']
+            category_value = entry['Stratification1']
+            value = float(entry['Data_Value'])
+
+            # Check if category and category_value does not have empty values
+            if category == '' or category_value == '':
+                continue
+
+            if (category, category_value) not in mean_by_category:
+                mean_by_category[(category, category_value)] = []
+            
+            mean_by_category[(category, category_value)].append(value)
+        
+        # Calculate the mean of the Data_Value column for each StratificationCategory1 and for each Stratification1
+        self.result = {}
+        for key, values in mean_by_category.items():
+            self.result[str(key)] = sum(values) / len(values)
+
+        # Sort the dictionary lexicographically
+        self.result = {self.input_data['state']: self.result}
+
     def _default(self, data_ingestor):
         print("This is the default case")
 
@@ -136,6 +165,7 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/diff_from_mean': self._diff_from_mean,
             '/api/state_diff_from_mean': self._state_diff_from_mean,
             '/api/mean_by_category': self._mean_by_category,
+            '/api/state_mean_by_category': self._state_mean_by_category,
         }
 
         func = switch.get(self.command, self._default)
