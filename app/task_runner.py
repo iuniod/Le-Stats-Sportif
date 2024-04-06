@@ -64,7 +64,7 @@ class ThreadPool:
             self.logger.info("Not accepting jobs - ThreadPool is shutting down.")
             return
 
-        job = Job(job_id, data, type_command)
+        job = Job(job_id, data, type_command, self.logger)
         self.logger.info(f"Registered job with job_id: {job_id}")
 
         with self.lock:

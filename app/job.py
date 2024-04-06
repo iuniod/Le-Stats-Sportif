@@ -6,13 +6,14 @@ import json
 
 class Job:  # pylint: disable=too-few-public-methods
     """ This class is used to store the job details and run the job."""
-    def __init__(self, job_id, input_data, command):
+    def __init__(self, job_id, input_data, command, logger):
         """ Initialize the Job class with job_id and input_data."""
         self.job_id = job_id
         self.input_data = input_data
         self.result = None
         self.status = "running"
         self.command = command
+        self.logger = logger
 
     def _states_mean(self, data_ingestor):
         """ Calculate the mean of the Data_Value column for each state,
@@ -213,6 +214,8 @@ class Job:  # pylint: disable=too-few-public-methods
             '/api/best5': self._best5,
             '/api/worst5': self._worst5,
         }
+
+        self.logger.info(f"Running for job_{self.job_id} {self.command}")
 
         func = switch.get(self.command, self._default)
         func(data_ingestor)
