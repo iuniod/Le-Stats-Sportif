@@ -2,10 +2,10 @@
 import os
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask
 from app.data_ingestor import DataIngestor
 from app.task_runner import ThreadPool
-from logging.handlers import RotatingFileHandler
 
 webserver = Flask(__name__)
 webserver.tasks_runner = ThreadPool()
@@ -20,7 +20,8 @@ webserver.logger = logging.Logger(__name__)
 # maximum log file size: 10KB, and keep 10 historical copies
 handler = RotatingFileHandler("logs/file.log", maxBytes=10000, backupCount=10)
 # Formatter for the log messages
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', \
+                              datefmt='%Y-%m-%d %H:%M:%S')
 handler.setFormatter(formatter)
 
 webserver.logger.addHandler(handler)

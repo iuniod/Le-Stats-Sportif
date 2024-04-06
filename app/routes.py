@@ -2,7 +2,7 @@
 from flask import request, jsonify
 from app import webserver
 
-def send_job_to_thread_pool(request, api_endpoint):
+def send_job_to_thread_pool(req, api_endpoint):
     """ Send the job to the thread pool for processing """
     # Check if ThreadPool is still accepting jobs
     if not webserver.tasks_runner.accepting_jobs:
@@ -12,7 +12,7 @@ def send_job_to_thread_pool(request, api_endpoint):
         })
 
     # Get request data
-    data = request.json
+    data = req.json
 
     # Register job. Don't wait for task to finish
     job_id = webserver.job_counter
@@ -76,7 +76,7 @@ def get_response(job_id):
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
     """ Get the mean of the Data_Value column for each state for the given question """
-    webserver.logger.info("Received request for states_mean with data: {}".format(request.json))
+    webserver.logger.info(f"Received request for states_mean with data: {request.json}")
     return send_job_to_thread_pool(request, "/api/states_mean")
 
 @webserver.route('/api/state_mean', methods=['POST'])
@@ -140,7 +140,7 @@ def graceful_shutdown_request():
             "status": "error",
             "reason": "Server is already shutting down"
         })
-        
+
     webserver.tasks_runner.stop()
 
     # Return a response

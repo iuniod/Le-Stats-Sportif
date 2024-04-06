@@ -2,14 +2,12 @@
 from queue import Queue
 from threading import Thread, Event, Lock
 import os
-import logging
 from app.job import Job
 
 class ThreadPool:
     """ ThreadPool class is a pool of threads that execute tasks from the job_queue. """
     def __init__(self):
         """ Initialize the ThreadPool. """
-        self.num_threads = self.get_num_threads()
         self.job_queue = Queue()
         self.job_list = []
         self.tasks = []
@@ -20,10 +18,11 @@ class ThreadPool:
 
     def start(self, data_ingestor, logger):
         """ Start the thread pool: create and run the threads."""
+        num_threads = self.get_num_threads()
         self.logger = logger
-        self.logger.info(f"Starting ThreadPool with {self.num_threads} threads")
+        self.logger.info(f"Starting ThreadPool with {num_threads} threads")
         self.data_ingestor = data_ingestor
-        for _ in range(self.num_threads):
+        for _ in range(num_threads):
             task_runner = TaskRunner(self.job_queue, self.lock, self.data_ingestor)
             task_runner.start()
             self.tasks.append(task_runner)
