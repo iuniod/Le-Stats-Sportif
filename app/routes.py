@@ -62,6 +62,15 @@ def get_response(job_id):
                 return jsonify({
                     "status": "running"
                 })
+            # If job is done, return the result from the temporary result field if it exists
+            if job.result is not None:
+                return jsonify({
+                    "status": "done",
+                    "data": job.result
+                })
+            
+            # If the result was erased, return the result from the file, store it in a temporary variable and return it
+            job.result = job.get_result_from_file()
             return jsonify({
                 "status": "done",
                 "data": job.result

@@ -229,5 +229,14 @@ class Job:  # pylint: disable=too-few-public-methods
         with open(f"results/job_id{self.job_id}.json", 'w', encoding='utf-8') as f:
             f.write(json.dumps(self.result))
 
-        # Update the status of the job
+        # Update the status of the job and erase the temporary result
         self.status = "done"
+        self.result = None
+    
+    def get_result_from_file(self):
+        """ Get the result from the file."""
+        try:
+            with open(f"results/job_id{self.job_id}.json", 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return None

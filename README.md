@@ -18,6 +18,7 @@ class Job:  # pylint: disable=too-few-public-methods
         self.status = "running" # statusul jobului - când este creat este running deoaerece intră automat în coadă
         self.command = command # tipul API-ului care a creat jobul
         self.logger = logger # logger-ul pentru debug
+        self.result = None # rezultatul jobului, stocat temporar
 ```
 
 * Am ales să scriu o funcție generică pentru majoritatea API-urilor de tipul POST pentru a nu avea cod duplicat.
