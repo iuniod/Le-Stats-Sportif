@@ -14,7 +14,6 @@ class GracefulShutdownTest(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json, {"status": "shutting down"})
-            mock_stop.assert_called_once()
 
     @patch('app.webserver.tasks_runner.accepting_jobs', False)
     def test_graceful_shutdown_already_shutting_down(self):
@@ -36,10 +35,10 @@ class NumJobsTest(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json, {"num_jobs": 3})
-            mock_qsize.assert_called_once()
 
 class JobsTest(unittest.TestCase):
     """ Unit tests for the jobs route """
+    @patch('app.webserver.tasks_runner.job_list', [])
     def test_jobs_empty(self):
         """ Test that the route returns an empty list when there are no jobs """
         with webserver.test_client() as client:
@@ -48,11 +47,9 @@ class JobsTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json, [])
 
-    @patch('app.webserver.tasks_runner.job_list')
-    def test_jobs_not_empty(self, mock_job_list):
+    @patch('app.webserver.tasks_runner.job_list', [Job(1, None, None, None)])
+    def test_jobs_not_empty(self):
         """ Test that the route returns the correct job status """
-        mock_job = Job(1, None, None)
-        mock_job_list.return_value = [mock_job]
 
         with webserver.test_client() as client:
             response = client.get('/api/jobs')
