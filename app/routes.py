@@ -146,6 +146,27 @@ def graceful_shutdown_request():
     # Return a response
     return jsonify({"status": "shutting down"})
 
+@webserver.route('/api/jobs', methods=['GET'])
+def jobs_request():
+    """ Get the list of all jobs and their status """
+    webserver.logger.info("Received request for jobs")
+    jobs = []
+    for job in webserver.tasks_runner.job_list:
+        jobs.append({
+            "job_id": job.job_id,
+            "status": job.status
+        })
+
+    return jsonify(jobs)
+
+@webserver.route('/api/num_jobs', methods=['GET'])
+def num_jobs_request():
+    """ Get the number of jobs that are currently running - in the job_queue """
+    webserver.logger.info("Received request for num_jobs")
+    # Get the number of jobs in the job_queue
+    num_jobs = webserver.tasks_runner.job_queue.qsize()
+    return jsonify({"num_jobs": num_jobs})
+
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
 @webserver.route('/index')
