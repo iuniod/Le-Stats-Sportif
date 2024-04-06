@@ -2,6 +2,28 @@
 from flask import request, jsonify
 from app import webserver
 
+def send_job_to_thread_pool(request, api_endpoint):
+    """ Send the job to the thread pool for processing """
+    # Check if ThreadPool is still accepting jobs
+    if not webserver.tasks_runner.accepting_jobs:
+        return jsonify({
+            "status": "error",
+            "reason": "Server is shutting down"
+        })
+
+    # Get request data
+    data = request.json
+
+    # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+    webserver.tasks_runner.register_job(job_id, data, api_endpoint)
+
+    # Increment job_id counter
+    webserver.job_counter += 1
+
+    # Return associated job_id
+    return jsonify({"job_id": "job_id_" + str(job_id)})
+
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
 def post_endpoint():
@@ -55,164 +77,74 @@ def get_response(job_id):
 def states_mean_request():
     """ Get the mean of the Data_Value column for each state for the given question """
     webserver.logger.info("Received request for states_mean with data: {}".format(request.json))
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/states_mean")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/states_mean")
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
     """ Get the mean of the Data_Value column for a given state and question """
     webserver.logger.info(f"Received request for state_mean with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/state_mean")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/state_mean")
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
     """ Get the best 5 states for the given question """
     webserver.logger.info(f"Received request for best5 with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/best5")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/best5")
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
     """ Get the worst 5 states for the given question """
     webserver.logger.info(f"Received request for worst5 with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/worst5")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/worst5")
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
     """ Get the global mean of the Data_Value column """
     webserver.logger.info(f"Received request for global_mean with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/global_mean")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/global_mean")
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for each state, for the given question"""
     webserver.logger.info(f"Received request for diff_from_mean with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/diff_from_mean")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/diff_from_mean")
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for a given state and question """
     webserver.logger.info(f"Received request for state_diff_from_mean with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/state_diff_from_mean")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/state_diff_from_mean")
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for each state,
         for the given question """
     webserver.logger.info(f"Received request for mean_by_category with data: {request.json}")
-    # Get request data
-    data = request.json
-
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/mean_by_category")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
+    return send_job_to_thread_pool(request, "/api/mean_by_category")
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for a given state and question """
     webserver.logger.info(f"Received request for state_mean_by_category with data: {request.json}")
-    # Get request data
-    data = request.json
+    return send_job_to_thread_pool(request, "/api/state_mean_by_category")
 
-    # Register job. Don't wait for task to finish
-    job_id = webserver.job_counter
-    webserver.tasks_runner.register_job(job_id, data, "/api/state_mean_by_category")
-
-    # Increment job_id counter
-    webserver.job_counter += 1
-
-    # Return associated job_id
-    return jsonify({"job_id": "job_id_" + str(job_id)})
-
-@webserver.route('/api/graceful_shutdown', methods=['POST'])
+@webserver.route('/api/graceful_shutdown', methods=['GET'])
 def graceful_shutdown_request():
     """ Gracefully shutdown the server """
     webserver.logger.info("Received request for graceful_shutdown")
     # Signal the tasks_runner to stop accepting new jobs
+    if not webserver.tasks_runner.accepting_jobs:
+        return jsonify({
+            "status": "error",
+            "reason": "Server is already shutting down"
+        })
+        
     webserver.tasks_runner.stop()
+
+    # Return a response
+    return jsonify({"status": "shutting down"})
 
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
