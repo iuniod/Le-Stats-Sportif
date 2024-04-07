@@ -35,4 +35,4 @@ webserver.job_counter = 1
 if not os.path.exists('results'):
     os.makedirs('results')
 
-from app import routes
+from app import routes #pylint: disable=wrong-import-position

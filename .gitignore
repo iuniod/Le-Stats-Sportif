@@ -6,6 +6,9 @@ __pycache__/
 results/
 logs/
 
+*.zip
+git-log
+
 venv/
 build/
 develop-eggs/

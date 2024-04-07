@@ -6,16 +6,24 @@ from datetime import datetime, timedelta
 from time import sleep
 import os
 
+import sys
+try:
+    from io import StringIO
+except:
+    from StringIO import StringIO
+
+import pylint.lint
+
 from deepdiff import DeepDiff
 
 total_score = 0
 
 ONLY_LAST = False
+LOCAL_DEBUG = True
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        # os.system("rm -rf results/*")
-        pass
+        os.system("rm -rf results/*")
 
     def check_res_timeout(self, res_callable, ref_result, timeout_sec, poll_interval = 0.2):
         initial_timestamp = datetime.now()
@@ -68,9 +76,14 @@ class TestAPI(unittest.TestCase):
         self.helper_test_endpoint("diff_from_mean")
 
     @unittest.skipIf(ONLY_LAST, "Checking only the last added test")
+    def test_state_diff_from_mean(self):
+        self.helper_test_endpoint("state_diff_from_mean")
+
+    @unittest.skipIf(ONLY_LAST, "Checking only the last added test")
     def test_mean_by_category(self):
         self.helper_test_endpoint("mean_by_category")
 
+    @unittest.skipIf(ONLY_LAST, "Checking only the last added test")
     def test_state_mean_by_category(self):
         self.helper_test_endpoint("state_mean_by_category")
 
@@ -110,12 +123,43 @@ class TestAPI(unittest.TestCase):
                     res_callable = lambda: requests.get(f"http://127.0.0.1:5000/api/get_results/{job_id}"),
                     ref_result = ref_result,
                     timeout_sec = 1)
-                
+
                 local_score += test_score
         total_score += min(round(local_score), test_suite_score)
+
+    def test_coding_style(self):
+        global total_score
+
+        python_files = []
+        for root, _, files in os.walk("./app"):
+            for file in files:
+                if file.endswith('.py'):
+                    python_files.append(os.path.join(root, file))
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        ARGS = ["-r","n", "--rcfile=./checker/pylintrc"]
+        r = pylint.lint.Run(python_files + ARGS, exit=False)
+
+        test = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        lint_res = test.split('\n')
+        if LOCAL_DEBUG:
+            print(test)
+
+        rating_str = "Your code has been rated at "
+        score_line = list(filter(lambda ln: rating_str in ln, lint_res))[0]
+        score_str = score_line.split(rating_str)[-1]
+        score = float(score_str.split('/')[0])
+        print(score_line)
+        if score < 8:
+            total_score -= 5
 
 if __name__ == '__main__':
     try:
         unittest.main()
     finally:
-        print(f"Total score {total_score}")
+        print(f"Total: {total_score}/100")

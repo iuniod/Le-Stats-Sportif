@@ -232,7 +232,7 @@ class Job:  # pylint: disable=too-few-public-methods
         # Update the status of the job and erase the temporary result
         self.status = "done"
         self.result = None
-    
+
     def get_result_from_file(self):
         """ Get the result from the file."""
         try:

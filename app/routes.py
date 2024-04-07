@@ -46,7 +46,7 @@ def post_endpoint():
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
     """ Get the result of a job by job_id if exists """
-    webserver.logger.info(f"Received request for job_id: {job_id}")
+    webserver.logger.info("Received request for job_id: %s", job_id)
     # Check if job_id is valid
     job_id_nr = int(job_id.split("_")[-1])
     if job_id_nr > webserver.job_counter:
@@ -68,8 +68,9 @@ def get_response(job_id):
                     "status": "done",
                     "data": job.result
                 })
-            
-            # If the result was erased, return the result from the file, store it in a temporary variable and return it
+
+            # If the result was erased, return the result from the file,
+            # store it in a temporary variable and return it
             job.result = job.get_result_from_file()
             return jsonify({
                 "status": "done",
@@ -85,58 +86,58 @@ def get_response(job_id):
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
     """ Get the mean of the Data_Value column for each state for the given question """
-    webserver.logger.info(f"Received request for states_mean with data: {request.json}")
+    webserver.logger.info("Received request for states_mean with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/states_mean")
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
     """ Get the mean of the Data_Value column for a given state and question """
-    webserver.logger.info(f"Received request for state_mean with data: {request.json}")
+    webserver.logger.info("Received request for state_mean with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/state_mean")
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
     """ Get the best 5 states for the given question """
-    webserver.logger.info(f"Received request for best5 with data: {request.json}")
+    webserver.logger.info("Received request for best5 with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/best5")
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
     """ Get the worst 5 states for the given question """
-    webserver.logger.info(f"Received request for worst5 with data: {request.json}")
+    webserver.logger.info("Received request for worst5 with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/worst5")
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
     """ Get the global mean of the Data_Value column """
-    webserver.logger.info(f"Received request for global_mean with data: {request.json}")
+    webserver.logger.info("Received request for global_mean with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/global_mean")
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for each state, for the given question"""
-    webserver.logger.info(f"Received request for diff_from_mean with data: {request.json}")
+    webserver.logger.info("Received request for diff_from_mean with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/diff_from_mean")
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
     """ Get the difference between global mean and
         the mean of the Data_Value column for a given state and question """
-    webserver.logger.info(f"Received request for state_diff_from_mean with data: {request.json}")
+    webserver.logger.info("Received request for state_diff_from_mean with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/state_diff_from_mean")
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for each state,
         for the given question """
-    webserver.logger.info(f"Received request for mean_by_category with data: {request.json}")
+    webserver.logger.info("Received request for mean_by_category with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/mean_by_category")
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
     """ Get the mean of the Data_Value column for each category, for a given state and question """
-    webserver.logger.info(f"Received request for state_mean_by_category with data: {request.json}")
+    webserver.logger.info("Received request for state_mean_by_category with data: %s", request.json)
     return send_job_to_thread_pool(request, "/api/state_mean_by_category")
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
